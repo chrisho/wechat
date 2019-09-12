@@ -57,8 +57,7 @@ func pkcs7Unpad(data []byte, blockSize int) ([]byte, error) {
 	return data[:len(data)-n], nil
 }
 
-// Decrypt 解密数据
-func (wxa *MiniProgram) Decrypt(sessionKey, encryptedData, iv string) (*UserInfo, error) {
+func decrypt(sessionKey, encryptedData, iv string) ([]byte, error) {
 	aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
 	if err != nil {
 		return nil, err
@@ -81,6 +80,16 @@ func (wxa *MiniProgram) Decrypt(sessionKey, encryptedData, iv string) (*UserInfo
 	if err != nil {
 		return nil, err
 	}
+	return cipherText, nil
+}
+
+// Decrypt 解密数据
+func (wxa *MiniProgram) Decrypt(sessionKey, encryptedData, iv string) (*UserInfo, error) {
+	cipherText, err := decrypt(sessionKey, encryptedData, iv)
+	if err != nil {
+		return nil, err
+	}
+
 	var userInfo UserInfo
 	err = json.Unmarshal(cipherText, &userInfo)
 	if err != nil {
@@ -90,4 +99,31 @@ func (wxa *MiniProgram) Decrypt(sessionKey, encryptedData, iv string) (*UserInfo
 		return nil, ErrAppIDNotMatch
 	}
 	return &userInfo, nil
+}
+
+type Phone struct {
+	PhoneNumber     string `json:"phone_number"`
+	PurePhoneNumber string `json:"pure_phone_number"`
+	CountryCode     string `json:"country_code"`
+	Watermark       struct {
+		Timestamp int64  `json:"timestamp"`
+		AppID     string `json:"appid"`
+	} `json:"watermark"`
+}
+
+// DecryptPhone 解密手机号码数据
+func (wxa *MiniProgram) DecryptPhone(sessionKey, encryptedData, iv string) (*Phone, error) {
+	cipherText, err := decrypt(sessionKey, encryptedData, iv)
+	if err != nil {
+		return nil, err
+	}
+	var phone Phone
+	err = json.Unmarshal(cipherText, &phone)
+	if err != nil {
+		return nil, err
+	}
+	if phone.Watermark.AppID != wxa.AppID {
+		return nil, ErrAppIDNotMatch
+	}
+	return &phone, nil
 }
