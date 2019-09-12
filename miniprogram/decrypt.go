@@ -102,9 +102,9 @@ func (wxa *MiniProgram) Decrypt(sessionKey, encryptedData, iv string) (*UserInfo
 }
 
 type Phone struct {
-	PhoneNumber     string `json:"phone_number"`
-	PurePhoneNumber string `json:"pure_phone_number"`
-	CountryCode     string `json:"country_code"`
+	PhoneNumber     string `json:"phoneNumber"`
+	PurePhoneNumber string `json:"purePhoneNumber"`
+	CountryCode     string `json:"countryCode"`
 	Watermark       struct {
 		Timestamp int64  `json:"timestamp"`
 		AppID     string `json:"appid"`
